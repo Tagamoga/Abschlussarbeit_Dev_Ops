@@ -5,15 +5,20 @@ pipeline {
         stage('Build - Backend') {
             steps {
                 dir('backend') {
-                        sh 'mvn clean install -P dev'
+                    // ruft Maven mit dem dev-Profile auf
+                    sh 'mvn clean install -Pdev'
                 }
             }
         }
 
         stage('Build - Frontend') {
-            dir('backend') {
-                steps {
-                    sh 'npm install && npm run build'
+            steps {
+                dir('frontend') {
+                    // installiert Dependencies und baut
+                    sh '''
+                        npm install
+                        npm run build
+                    '''
                 }
             }
         }
