@@ -1,9 +1,61 @@
 pipeline {
     agent any
+
     stages {
-        stage("Build") {
+        stage('Build - Backend') {
             steps {
-                echo "Building the application..."
+                sh 'mvn clean install -P dev'
+            }
+        }
+
+        stage('Build - Frontend') {
+            steps {
+                sh 'npm install && npm run build'
+            }
+        }
+
+        stage('Test - Backend') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Test - Frontend') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t myrepo/myapp .'
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerHubCredentials', passwordVariable: 'DOCKER_HUB_PASSWORD', usernameVariable: 'DOCKER_HUB_USERNAME')]) {
+                      sh 'docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD'
+                      sh 'docker push myrepo/myapp'
+                }
+            }
+        }
+
+        stage('Deploy Dev') {
+            steps {
+                sh 'kubectl apply -f deployment_dev.yml'
+            }
+        }
+
+        stage('Manual Approval') {
+            steps {
+                input "Approve deployment to production?"
+            }
+        }
+
+        stage('Deploy Prod') {
+            steps {
+                sh 'kubectl apply -f deployment_prod.yml'
             }
         }
     }
