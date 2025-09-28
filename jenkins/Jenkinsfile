@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Build - Backend') {
             steps {
-                dir('path/to/subfolder') {
+                dir('backend') {
                     sh 'mvn clean install -P dev'
                 }
             }
