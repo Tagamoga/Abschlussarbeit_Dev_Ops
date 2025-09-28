@@ -22,5 +22,17 @@ pipeline {
                 }
             }
         }
+
+        stage('Test - Backend') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Test - Frontend') {
+            steps {
+                sh 'npm test'
+            }
+        }
     }
 }
