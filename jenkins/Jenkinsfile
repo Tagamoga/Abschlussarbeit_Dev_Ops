@@ -2,10 +2,16 @@ pipeline {
     agent any
 
     stages {
-        stage('List available JDK tools') {
-            steps {
-                sh 'java -version'
-            }
-        }
+        stage('Build - Backend') {
+                    steps {
+                        sh 'mvn clean install -P dev'
+                    }
+                }
+
+                stage('Build - Frontend') {
+                    steps {
+                        sh 'npm install && npm run build'
+                    }
+                }
     }
 }
