@@ -3,15 +3,19 @@ pipeline {
 
     stages {
         stage('Build - Backend') {
-                    steps {
+            steps {
+                dir('backend') {
                         sh 'mvn clean install -P dev'
-                    }
                 }
+            }
+        }
 
-                stage('Build - Frontend') {
-                    steps {
-                        sh 'npm install && npm run build'
-                    }
+        stage('Build - Frontend') {
+            dir('backend') {
+                steps {
+                    sh 'npm install && npm run build'
                 }
+            }
+        }
     }
 }
