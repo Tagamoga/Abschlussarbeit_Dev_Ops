@@ -2,7 +2,7 @@
   "name": "kukuk-frontend",
   "version": "1.0.0",
   "scripts": {
-    "build": "echo Building frontend...",
+    "build": "mkdir -p dist && cp -r src/* dist",
     "test": "jest"
   },
   "devDependencies": {
