@@ -25,14 +25,43 @@ pipeline {
 
         stage('Test - Backend') {
             steps {
-                sh 'mvn test'
+                dir('backend') {
+                    sh 'mvn test'
+                }
             }
         }
 
         stage('Test - Frontend') {
             steps {
-                sh 'npm test'
+                dir('frontend') {
+                    sh 'npm test'
+                }
             }
         }
+
+        stage('Docker Build') {
+            steps {
+                echo "Docker Build"
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                echo 'Docker Push'
+            }
+        }
+
+        stage('Deploy Dev') {
+            steps {
+                echo 'Deploy Dev'
+            }
+        }
+
+        stage('Deploy Prod') {
+            steps {
+                echo 'Deploy Prod'
+            }
+        }
+
     }
 }
