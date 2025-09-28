@@ -5,7 +5,6 @@ pipeline {
         stage('Build - Backend') {
             steps {
                 dir('backend') {
-                    // ruft Maven mit dem dev-Profile auf
                     sh 'mvn clean install -Pdev'
                 }
             }
@@ -14,7 +13,6 @@ pipeline {
         stage('Build - Frontend') {
             steps {
                 dir('frontend') {
-                    // installiert Dependencies und baut
                     sh '''
                         npm install
                         npm run build
@@ -41,7 +39,19 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                echo "Docker Build"
+                script {
+                    dir('backend') {
+                        sh """
+                        docker build -t skyerededucation.azurecr.io/backend:dev .
+                        """
+                    }
+
+                    dir('frontend') {
+                        sh """
+                        docker build -t skyerededucation.azurecr.io/frontend:dev .
+                        """
+                    }
+                }
             }
         }
 
