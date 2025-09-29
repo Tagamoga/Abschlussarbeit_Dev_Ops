@@ -65,7 +65,7 @@ pipeline {
             steps {
                 script {
                     // SecretFile "mariadonner-dev1.conf" benutzen, sobald sie hochgeladen ist.
-                    withCredentials([file(credentialsId: 'mariadonner-dev1', variable: 'KUBECONFIG')]) {
+                    withCredentials([file(credentialsId: 'mariadonner-dev', variable: 'KUBECONFIG')]) {
                         echo "Deploying to Kub-Dev"
 
                         sh '''
@@ -94,7 +94,7 @@ pipeline {
             steps {
                 script {
                     // SecretFile "mariadonner-prod1.conf" benutzen, sobald sie hochgeladen ist.
-                    withCredentials([file(credentialsId: 'mariadonner-prod1', variable: 'KUBECONFIG')]) {
+                    withCredentials([file(credentialsId: 'mariadonner-prod', variable: 'KUBECONFIG')]) {
                         echo "Deploying to Kub-Prod"
 
                         sh '''
