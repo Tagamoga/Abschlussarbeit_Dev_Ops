@@ -43,7 +43,7 @@ pipeline {
 
         stage('Docker Login with ACR') {
             steps {
-                sh 'az acr login'
+                sh 'az acr login --name skyerededucation'
             }
         }
     }
