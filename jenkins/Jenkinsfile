@@ -57,19 +57,57 @@ pipeline {
 
         stage('Docker Push') {
             steps {
-                echo 'Docker Push'
+                echo 'Service Principal (empfohlen für CI/CD) fehlt. Sonst muss interaktiv gehandelt werden. Ich habe nicht die Rechte ein SP zu erstellen.'
             }
         }
 
         stage('Deploy Dev') {
             steps {
-                echo 'Deploy Dev'
+                script {
+                    // SecretFile "mariadonner-dev1.conf" benutzen, sobald sie hochgeladen ist.
+                    withCredentials([file(credentialsId: 'mariadonner-dev1', variable: 'KUBECONFIG')]) {
+                        echo "Deploying to Kub-Dev"
+
+                        sh '''
+                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-dev
+                            kubectl rollout status deployment backend --namespace mariadonner-dev
+                        '''
+
+                        sh '''
+                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-dev
+                            kubectl rollout status deployment frontend --namespace mariadonner-dev
+                        '''
+                    }
+                }
+            }
+        }
+
+
+
+        stage('Manual Approval for Prod') {
+            steps {
+                input message: 'Freigabe für Prod Deployment?', ok: 'Deploy Prod'
             }
         }
 
         stage('Deploy Prod') {
             steps {
-                echo 'Deploy Prod'
+                script {
+                    // SecretFile "mariadonner-prod1.conf" benutzen, sobald sie hochgeladen ist.
+                    withCredentials([file(credentialsId: 'mariadonner-prod1', variable: 'KUBECONFIG')]) {
+                        echo "Deploying to Kub-Prod"
+
+                        sh '''
+                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-prod
+                            kubectl rollout status deployment backend --namespace mariadonner-prod
+                        '''
+
+                        sh '''
+                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-prod
+                            kubectl rollout status deployment frontend --namespace mariadonner-prod
+                        '''
+                    }
+                }
             }
         }
 
