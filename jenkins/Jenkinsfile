@@ -42,25 +42,8 @@ pipeline {
         }
 
         stage('Docker Login with ACR') {
-            environment {
-                ACR_NAME = "skyerededucation"
-            }
             steps {
-                withCredentials([
-                    usernamePassword(credentialsId: 'azure-sp', usernameVariable: 'AZURE_CLIENT_ID', passwordVariable: 'AZURE_CLIENT_SECRET'),
-                    string(credentialsId: 'azure-tenant', variable: 'AZURE_TENANT_ID')
-                ]) {
-                    sh '''
-                        # Login bei Azure mit Service Principal
-                        az login --service-principal \
-                            -u "$AZURE_CLIENT_ID" \
-                            -p "$AZURE_CLIENT_SECRET" \
-                            --tenant "$AZURE_TENANT_ID"
-
-                        # ACR Login (nutzt automatisch az-Token, kein Passwort nötig)
-                        az acr login --name $ACR_NAME
-                    '''
-                }
+                echo('Test')
             }
         }
     }
