@@ -69,13 +69,13 @@ pipeline {
                         echo "Deploying to Kub-Dev"
 
                         sh '''
-                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-dev
-                            kubectl rollout status deployment backend --namespace mariadonner-dev
+                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-dev --validate=false
+                            kubectl rollout status deployment backend --namespace mariadonner-dev --validate=false
                         '''
 
                         sh '''
-                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-dev
-                            kubectl rollout status deployment frontend --namespace mariadonner-dev
+                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-dev --validate=false
+                            kubectl rollout status deployment frontend --namespace mariadonner-dev --validate=false
                         '''
                     }
                 }
