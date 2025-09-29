@@ -45,7 +45,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'acr-credentials', usernameVariable: 'SP_APP_ID', passwordVariable: 'SP_PASSWORD')]) {
                     sh """#!/bin/bash
-                        az login --service-principal -u \$SP_APP_ID -p \$SP_PASSWORD --tenant <TENANT_ID>   &&   az acr login --name skyerededucation
+                        az login --service-principal -u \$SP_APP_ID -p \$SP_PASSWORD --tenant <TENANT_ID>
                         """
                 }
             }
