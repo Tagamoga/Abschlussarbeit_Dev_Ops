@@ -55,9 +55,29 @@ pipeline {
             }
         }
 
-        stage('Docker Push') {
+         stage("Docker Login") {
             steps {
-                echo 'Service Principal (empfohlen für CI/CD) fehlt. Sonst muss interaktiv gehandelt werden. Ich habe nicht die Rechte ein SP zu erstellen.'
+                withCredentials([usernamePassword(credentialsId: 'acr-credentials', usernameVariable: 'ACR_USER', passwordVariable: 'ACR_PASS')]) {
+                    sh "echo $ACR_PASS | docker login $ACR_NAME -u $ACR_USER --password-stdin"
+                }
+            }
+        }
+
+        stage("Docker Build") {
+            steps {
+                script {
+                    sh "docker build -t $ACR_NAME/abschlussprojekt-backend:latest -f backend/Dockerfile ./backend"
+                    sh "docker build -t $ACR_NAME/abschlussprojekt-frontend:latest -f frontend/Dockerfile ./frontend"
+                }
+            }
+        }
+
+        stage("Docker Push") {
+            steps {
+                script {
+                    sh "docker push $ACR_NAME/abschlussprojekt-backend:latest"
+                    sh "docker push $ACR_NAME/abschlussprojekt-frontend:latest"
+                }
             }
         }
 
@@ -98,13 +118,13 @@ pipeline {
                         echo "Deploying to Kub-Prod"
 
                         sh '''
-                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-prod
-                            kubectl rollout status deployment backend --namespace mariadonner-prod
+                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-prod --validate=false
+                            kubectl rollout status deployment backend --namespace mariadonner-prod --validate=false
                         '''
 
                         sh '''
-                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-prod
-                            kubectl rollout status deployment frontend --namespace mariadonner-prod
+                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-prod --validate=false
+                            kubectl rollout status deployment frontend --namespace mariadonner-prod --validate=false
                         '''
                     }
                 }
