@@ -45,10 +45,13 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'acr-credentials', usernameVariable: 'SP_APP_ID', passwordVariable: 'SP_PASSWORD')]) {
                     sh '''
-                        # Azure Login via Service Principal
-                        az login --service-principal -u "$SP_APP_ID" -p "$SP_PASSWORD" --tenant d79e9c22-774d-4682-8659-0c60a819d63e
+                        # Login bei Azure über Service Principal
+                        az login --service-principal \
+                            -u "$SP_APP_ID" \
+                            -p "$SP_PASSWORD" \
+                            --tenant <TENANT_ID>
 
-                        # ACR Login
+                        # Login beim ACR
                         az acr login --name skyerededucation
                     '''
                 }
