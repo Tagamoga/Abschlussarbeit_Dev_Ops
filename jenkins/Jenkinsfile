@@ -48,7 +48,7 @@ pipeline {
                         echo 'Test'"""
                     sh """#!/bin/bash
                                                   echo 'Test'
-                                                  az login --service-principal -u \$SP_APP_ID -p \$SP_PASSWORD --tenant <TENANT_ID>"""
+                                                  az login --service-principal -u \$SP_APP_ID -p \$SP_PASSWORD --tenant 12345678-90ab-cdef-1234-567890abcdef """
                     sh """#!/bin/bash
                                                   echo 'Test'
                                                   az acr login --name skyerededucation"""
