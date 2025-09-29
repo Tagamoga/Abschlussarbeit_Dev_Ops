@@ -37,6 +37,14 @@ pipeline {
             }
         }
 
+        stage("Docker Login") {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'acr-credentials', usernameVariable: 'ACR_USER', passwordVariable: 'ACR_PASS')]) {
+                    sh "echo $ACR_PASS | docker login $ACR_NAME -u $ACR_USER --password-stdin"
+                }
+            }
+        }
+
         stage('Docker Build') {
             steps {
                 script {
@@ -51,23 +59,6 @@ pipeline {
                         docker build -t skyerededucation.azurecr.io/frontend:dev .
                         """
                     }
-                }
-            }
-        }
-
-         stage("Docker Login") {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'acr-credentials', usernameVariable: 'ACR_USER', passwordVariable: 'ACR_PASS')]) {
-                    sh "echo $ACR_PASS | docker login $ACR_NAME -u $ACR_USER --password-stdin"
-                }
-            }
-        }
-
-        stage("Docker Build") {
-            steps {
-                script {
-                    sh "docker build -t $ACR_NAME/abschlussprojekt-backend:latest -f backend/Dockerfile ./backend"
-                    sh "docker build -t $ACR_NAME/abschlussprojekt-frontend:latest -f frontend/Dockerfile ./frontend"
                 }
             }
         }
