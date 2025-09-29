@@ -41,92 +41,26 @@ pipeline {
             }
         }
 
-        stage('Docker Login') {
+        stage('Docker Login with ACR') {
+            environment {
+                ACR_NAME = "skyerededucation"
+            }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'acr-credentials', usernameVariable: 'ACR_USER', passwordVariable: 'ACR_PASS')]) {
+                withCredentials([
+                    usernamePassword(credentialsId: 'azure-sp', usernameVariable: 'AZURE_CLIENT_ID', passwordVariable: 'AZURE_CLIENT_SECRET'),
+                    string(credentialsId: 'azure-tenant', variable: 'AZURE_TENANT_ID')
+                ]) {
                     sh '''
-                        echo "$ACR_PASS" | docker login "$ACR_NAME" -u "$ACR_USER" --password-stdin
-                        az login
+                        # Login bei Azure mit Service Principal
+                        az login --service-principal \
+                            -u "$AZURE_CLIENT_ID" \
+                            -p "$AZURE_CLIENT_SECRET" \
+                            --tenant "$AZURE_TENANT_ID"
+
+                        # ACR Login (nutzt automatisch az-Token, kein Passwort nötig)
+                        az acr login --name $ACR_NAME
                     '''
                 }
             }
         }
-
-        stage('Docker Build') {
-            steps {
-                script {
-                    dir('backend') {
-                        sh """
-                        docker build -t skyerededucation.azurecr.io/backend:dev .
-                        """
-                    }
-
-                    dir('frontend') {
-                        sh """
-                        docker build -t skyerededucation.azurecr.io/frontend:dev .
-                        """
-                    }
-                }
-            }
-        }
-
-        stage("Docker Push") {
-            steps {
-                script {
-                    sh "docker push $ACR_NAME/abschlussprojekt-backend:latest"
-                    sh "docker push $ACR_NAME/abschlussprojekt-frontend:latest"
-                }
-            }
-        }
-
-        stage('Deploy Dev') {
-            steps {
-                script {
-                    // SecretFile "mariadonner-dev1.conf" benutzen, sobald sie hochgeladen ist.
-                    withCredentials([file(credentialsId: 'mariadonner-dev', variable: 'KUBECONFIG')]) {
-                        echo "Deploying to Kub-Dev"
-
-                        sh '''
-                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-dev --validate=false
-                            kubectl rollout status deployment backend --namespace mariadonner-dev --validate=false
-                        '''
-
-                        sh '''
-                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-dev --validate=false
-                            kubectl rollout status deployment frontend --namespace mariadonner-dev --validate=false
-                        '''
-                    }
-                }
-            }
-        }
-
-
-
-        stage('Manual Approval for Prod') {
-            steps {
-                input message: 'Freigabe für Prod Deployment?', ok: 'Deploy Prod'
-            }
-        }
-
-        stage('Deploy Prod') {
-            steps {
-                script {
-                    // SecretFile "mariadonner-prod1.conf" benutzen, sobald sie hochgeladen ist.
-                    withCredentials([file(credentialsId: 'mariadonner-prod', variable: 'KUBECONFIG')]) {
-                        echo "Deploying to Kub-Prod"
-
-                        sh '''
-                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-prod --validate=false
-                            kubectl rollout status deployment backend --namespace mariadonner-prod --validate=false
-                        '''
-
-                        sh '''
-                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-prod --validate=false
-                            kubectl rollout status deployment frontend --namespace mariadonner-prod --validate=false
-                        '''
-                    }
-                }
-            }
-        }
-
     }
