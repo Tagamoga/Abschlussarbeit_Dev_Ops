@@ -39,11 +39,9 @@ pipeline {
 
         stage('Docker Login with ACR') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'acr-credentials', usernameVariable: 'SP_APP_ID', passwordVariable: 'SP_PASSWORD')]) {
-                    sh """ #!/bin/bash
-                        az login --username Maria.Donner@skyered-education.de --password Ba$tet33
+               sh """ #!/bin/bash
+                        az login --username Maria.Donner@skyered-education.de --password 'Ba$tet33'
                         az acr login --name skyerededucation"""
-                }
             }
         }
 
