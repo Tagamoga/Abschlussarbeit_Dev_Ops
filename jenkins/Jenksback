@@ -46,8 +46,6 @@
             }
         }
 
-
-
         stage('Manual Approval for Prod') {
             steps {
                 input message: 'Freigabe für Prod Deployment?', ok: 'Deploy Prod'
