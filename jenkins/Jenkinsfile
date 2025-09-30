@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+            AZ_PASS = 'Ba$tet33'
+     }
+
     stages {
         stage('Build - Backend') {
             steps {
@@ -40,85 +44,8 @@ pipeline {
         stage('Docker Login with ACR') {
             steps {
                sh """ #!/bin/bash
-                        az login --username Maria.Donner@skyered-education.de --password 'Ba$tet33'
+                        az login --username Maria.Donner@skyered-education.de --password $AZ_PASS
                         az acr login --name skyerededucation"""
-            }
-        }
-
-        stage('Docker Build') {
-            steps {
-                script {
-                    dir('backend') {
-                        sh """
-                        docker build -t skyerededucation.azurecr.io/backend:dev .
-                        """
-                    }
-
-                    dir('frontend') {
-                        sh """
-                        docker build -t skyerededucation.azurecr.io/frontend:dev .
-                        """
-                    }
-                }
-            }
-        }
-
-        stage("Docker Push") {
-            steps {
-                script {
-                    sh "docker push $ACR_NAME/abschlussprojekt-backend:latest"
-                    sh "docker push $ACR_NAME/abschlussprojekt-frontend:latest"
-                }
-            }
-        }
-
-        stage('Deploy Dev') {
-            steps {
-                script {
-                    // SecretFile "mariadonner-dev1.conf" benutzen, sobald sie hochgeladen ist.
-                    withCredentials([file(credentialsId: 'mariadonner-dev', variable: 'KUBECONFIG')]) {
-                        echo "Deploying to Kub-Dev"
-
-                        sh '''
-                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-dev --validate=false
-                            kubectl rollout status deployment backend --namespace mariadonner-dev --validate=false
-                        '''
-
-                        sh '''
-                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-dev --validate=false
-                            kubectl rollout status deployment frontend --namespace mariadonner-dev --validate=false
-                        '''
-                    }
-                }
-            }
-        }
-
-
-
-        stage('Manual Approval for Prod') {
-            steps {
-                input message: 'Freigabe für Prod Deployment?', ok: 'Deploy Prod'
-            }
-        }
-
-        stage('Deploy Prod') {
-            steps {
-                script {
-                    // SecretFile "mariadonner-prod1.conf" benutzen, sobald sie hochgeladen ist.
-                    withCredentials([file(credentialsId: 'mariadonner-prod', variable: 'KUBECONFIG')]) {
-                        echo "Deploying to Kub-Prod"
-
-                        sh '''
-                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-prod --validate=false
-                            kubectl rollout status deployment backend --namespace mariadonner-prod --validate=false
-                        '''
-
-                        sh '''
-                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-prod --validate=false
-                            kubectl rollout status deployment frontend --namespace mariadonner-prod --validate=false
-                        '''
-                    }
-                }
             }
         }
     }
