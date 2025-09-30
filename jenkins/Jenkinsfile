@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-     environment {
-         ACR_NAME = "skyerededucation.azurecr.io"
-     }
-
     stages {
         stage('Build - Backend') {
             steps {
@@ -45,13 +41,85 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'acr-credentials', usernameVariable: 'SP_APP_ID', passwordVariable: 'SP_PASSWORD')]) {
                     sh """ #!/bin/bash
-                        echo 'Test'"""
-                    sh """#!/bin/bash
-                                                  echo 'Test'
-                                                  az login --service-principal -u \$SP_APP_ID -p \$SP_PASSWORD --tenant 12345678-90ab-cdef-1234-567890abcdef """
-                    sh """#!/bin/bash
-                                                  echo 'Test'
-                                                  az acr login --name skyerededucation"""
+                        az login --username Maria.Donner@skyered-education.de --password Ba$tet33
+                        az acr login --name skyerededucation"""
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                script {
+                    dir('backend') {
+                        sh """
+                        docker build -t skyerededucation.azurecr.io/backend:dev .
+                        """
+                    }
+
+                    dir('frontend') {
+                        sh """
+                        docker build -t skyerededucation.azurecr.io/frontend:dev .
+                        """
+                    }
+                }
+            }
+        }
+
+        stage("Docker Push") {
+            steps {
+                script {
+                    sh "docker push $ACR_NAME/abschlussprojekt-backend:latest"
+                    sh "docker push $ACR_NAME/abschlussprojekt-frontend:latest"
+                }
+            }
+        }
+
+        stage('Deploy Dev') {
+            steps {
+                script {
+                    // SecretFile "mariadonner-dev1.conf" benutzen, sobald sie hochgeladen ist.
+                    withCredentials([file(credentialsId: 'mariadonner-dev', variable: 'KUBECONFIG')]) {
+                        echo "Deploying to Kub-Dev"
+
+                        sh '''
+                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-dev --validate=false
+                            kubectl rollout status deployment backend --namespace mariadonner-dev --validate=false
+                        '''
+
+                        sh '''
+                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-dev --validate=false
+                            kubectl rollout status deployment frontend --namespace mariadonner-dev --validate=false
+                        '''
+                    }
+                }
+            }
+        }
+
+
+
+        stage('Manual Approval for Prod') {
+            steps {
+                input message: 'Freigabe für Prod Deployment?', ok: 'Deploy Prod'
+            }
+        }
+
+        stage('Deploy Prod') {
+            steps {
+                script {
+                    // SecretFile "mariadonner-prod1.conf" benutzen, sobald sie hochgeladen ist.
+                    withCredentials([file(credentialsId: 'mariadonner-prod', variable: 'KUBECONFIG')]) {
+                        echo "Deploying to Kub-Prod"
+
+                        sh '''
+                            kubectl apply -f k8s/backend-deployment.yaml --namespace mariadonner-prod --validate=false
+                            kubectl rollout status deployment backend --namespace mariadonner-prod --validate=false
+                        '''
+
+                        sh '''
+                            kubectl apply -f k8s/frontend-deployment.yaml --namespace mariadonner-prod --validate=false
+                            kubectl rollout status deployment frontend --namespace mariadonner-prod --validate=false
+                        '''
+                    }
                 }
             }
         }
