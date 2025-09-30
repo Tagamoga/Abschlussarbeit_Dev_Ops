@@ -43,9 +43,9 @@ pipeline {
 
         stage('Docker Login with ACR') {
             steps {
-               sh """ #!/bin/bash
+               sh '''#!/bin/bash
                         az login --username Maria.Donner@skyered-education.de --password $AZ_PASS
-                        az acr login --name skyerededucation"""
+                        az acr login --name skyerededucation'''
             }
         }
     }
